@@ -144,6 +144,40 @@
   background: rgba(0, 122, 255, 0.2);
 }
 
+/* 待办事项样式 */
+.todo-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.todo-checkbox {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  cursor: pointer;
+  accent-color: #007AFF;
+  flex-shrink: 0;
+}
+
+.todo-block input[type="text"] {
+  flex: 1;
+  margin: 0;
+  padding: 4px 0;
+}
+
+.todo-block input[type="text"]:focus {
+  padding: 4px 8px;
+}
+
+/* 已完成的待办事项样式 */
+.todo-block:has(.todo-checkbox:checked) input[type="text"] {
+  text-decoration: line-through;
+  color: #999;
+  opacity: 0.7;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .wysiwyg-editor {

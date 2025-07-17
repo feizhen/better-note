@@ -41,6 +41,14 @@ const WysiwygEditor = ({ note, onChange }) => {
         block.type = `heading${level}`
         block.displayContent = headingMatch[2]
       }
+      // 检测待办事项
+      else if (line.match(/^(\s*)- \[([ x])\]\s+(.*)$/)) {
+        const todoMatch = line.match(/^(\s*)- \[([ x])\]\s+(.*)$/)
+        block.type = 'todo'
+        block.indent = todoMatch[1].length
+        block.checked = todoMatch[2] === 'x'
+        block.displayContent = todoMatch[3]
+      }
       // 检测列表
       else if (line.match(/^(\s*)([-*+]|\d+\.)\s+(.*)$/)) {
         const listMatch = line.match(/^(\s*)([-*+]|\d+\.)\s+(.*)$/)
@@ -54,6 +62,13 @@ const WysiwygEditor = ({ note, onChange }) => {
         const quoteMatch = line.match(/^>\s+(.*)$/)
         block.type = 'quote'
         block.displayContent = quoteMatch[1]
+      }
+      // 检测代码块
+      else if (line.match(/^```(.*)$/)) {
+        const codeMatch = line.match(/^```(.*)$/)
+        block.type = 'code-block'
+        block.language = codeMatch[1]
+        block.displayContent = codeMatch[1] ? `代码块 (${codeMatch[1]})` : '代码块'
       }
 
       return block
@@ -123,6 +138,13 @@ const WysiwygEditor = ({ note, onChange }) => {
         case 'quote':
           block.content = newContent ? `> ${newContent}` : ''
           break
+        case 'todo':
+          const checkMark = block.checked ? 'x' : ' '
+          block.content = newContent ? `- [${checkMark}] ${newContent}` : `- [${checkMark}] `
+          break
+        case 'code-block':
+          block.content = newContent ? `\`\`\`${newContent}\n\n\`\`\`` : '```\n\n```'
+          break
         default:
           block.content = newContent
       }
@@ -140,6 +162,22 @@ const WysiwygEditor = ({ note, onChange }) => {
     const input = e.target
     const value = input.value
 
+    // Cmd/Ctrl + K - 插入链接
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault()
+      insertLink(blockId, input)
+      return
+    }
+
+    // Cmd/Ctrl + Shift + X - 切换待办事项状态
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'X') {
+      e.preventDefault()
+      if (block.type === 'todo') {
+        toggleTodo(blockId)
+      }
+      return
+    }
+
     // 检测快捷语法
     if (e.key === ' ') {
       // 标题快捷语法
@@ -155,7 +193,46 @@ const WysiwygEditor = ({ note, onChange }) => {
       if (headingShortcuts[value]) {
         e.preventDefault()
         handleBlockChange(blockId, '', headingShortcuts[value])
-        // 立即重新聚焦
+        requestAnimationFrame(() => {
+          input.focus()
+          input.setSelectionRange(0, 0)
+        })
+        return
+      }
+
+      // 待办事项快捷语法
+      if (value === '[]' || value === '[ ]') {
+        e.preventDefault()
+        setBlocks(prevBlocks => {
+          const updatedBlocks = [...prevBlocks]
+          const targetBlock = updatedBlocks[blockIndex]
+          targetBlock.type = 'todo'
+          targetBlock.checked = false
+          targetBlock.displayContent = ''
+          targetBlock.content = '- [ ] '
+          setTimeout(() => updateContent(updatedBlocks), 0)
+          return updatedBlocks
+        })
+        requestAnimationFrame(() => {
+          input.focus()
+          input.setSelectionRange(0, 0)
+        })
+        return
+      }
+
+      // 已完成待办事项快捷语法
+      if (value === '[x]' || value === '[X]') {
+        e.preventDefault()
+        setBlocks(prevBlocks => {
+          const updatedBlocks = [...prevBlocks]
+          const targetBlock = updatedBlocks[blockIndex]
+          targetBlock.type = 'todo'
+          targetBlock.checked = true
+          targetBlock.displayContent = ''
+          targetBlock.content = '- [x] '
+          setTimeout(() => updateContent(updatedBlocks), 0)
+          return updatedBlocks
+        })
         requestAnimationFrame(() => {
           input.focus()
           input.setSelectionRange(0, 0)
@@ -178,6 +255,17 @@ const WysiwygEditor = ({ note, onChange }) => {
       if (value === '>') {
         e.preventDefault()
         handleBlockChange(blockId, '', 'quote')
+        requestAnimationFrame(() => {
+          input.focus()
+          input.setSelectionRange(0, 0)
+        })
+        return
+      }
+
+      // 代码块快捷语法
+      if (value === '```') {
+        e.preventDefault()
+        handleBlockChange(blockId, '', 'code-block')
         requestAnimationFrame(() => {
           input.focus()
           input.setSelectionRange(0, 0)
@@ -257,6 +345,63 @@ const WysiwygEditor = ({ note, onChange }) => {
     })
   }, [blocks.length, updateContent])
 
+  // 插入链接
+  const insertLink = useCallback((blockId, input) => {
+    const selection = {
+      start: input.selectionStart,
+      end: input.selectionEnd,
+      text: input.value.substring(input.selectionStart, input.selectionEnd)
+    }
+
+    const url = prompt('请输入链接地址:', 'https://')
+    if (!url) return
+
+    const linkText = selection.text || prompt('请输入链接文本:', '链接') || '链接'
+    const linkMarkdown = `[${linkText}](${url})`
+    
+    const newValue = input.value.substring(0, selection.start) + 
+                    linkMarkdown + 
+                    input.value.substring(selection.end)
+    
+    handleBlockChange(blockId, newValue)
+    
+    // 重新设置光标位置到链接后面
+    requestAnimationFrame(() => {
+      input.focus()
+      const newPosition = selection.start + linkMarkdown.length
+      input.setSelectionRange(newPosition, newPosition)
+    })
+  }, [handleBlockChange])
+
+  // 切换待办事项状态
+  const toggleTodo = useCallback((blockId) => {
+    setBlocks(prevBlocks => {
+      const updatedBlocks = [...prevBlocks]
+      const blockIndex = updatedBlocks.findIndex(b => b.id === blockId)
+      const block = updatedBlocks[blockIndex]
+      
+      if (block.type === 'todo') {
+        block.checked = !block.checked
+        const checkMark = block.checked ? 'x' : ' '
+        block.content = block.displayContent ? 
+          `- [${checkMark}] ${block.displayContent}` : 
+          `- [${checkMark}] `
+        
+        setTimeout(() => updateContent(updatedBlocks), 0)
+      }
+      
+      return updatedBlocks
+    })
+  }, [updateContent])
+
+  // 处理待办事项点击
+  const handleTodoClick = useCallback((blockId, e) => {
+    if (e.target.classList.contains('todo-checkbox')) {
+      e.preventDefault()
+      toggleTodo(blockId)
+    }
+  }, [toggleTodo])
+
   const getBlockClassName = (type) => {
     const baseClass = 'wysiwyg-block'
     switch (type) {
@@ -285,6 +430,7 @@ const WysiwygEditor = ({ note, onChange }) => {
       case 'unordered-list': return '列表项'
       case 'ordered-list': return '列表项'
       case 'quote': return '引用'
+      case 'todo': return '待办事项'
       default: return '输入 # 创建标题，输入 - 创建列表...'
     }
   }
@@ -293,17 +439,39 @@ const WysiwygEditor = ({ note, onChange }) => {
     <div className="wysiwyg-editor" ref={editorRef}>
       {blocks.map((block, index) => (
         <div key={block.id} className="wysiwyg-block-container">
-          <input
-            type="text"
-            className={getBlockClassName(block.type)}
-            value={block.displayContent || ''}
-            onChange={(e) => handleBlockChange(block.id, e.target.value)}
-            onKeyDown={(e) => handleKeyDown(e, block.id)}
-            placeholder={getPlaceholder(block.type)}
-            data-block-id={block.id}
-            autoComplete="off"
-            spellCheck={false}
-          />
+          {block.type === 'todo' ? (
+            <div className="todo-block" onClick={(e) => handleTodoClick(block.id, e)}>
+              <input
+                type="checkbox"
+                className="todo-checkbox"
+                checked={block.checked || false}
+                onChange={() => toggleTodo(block.id)}
+              />
+              <input
+                type="text"
+                className={getBlockClassName(block.type)}
+                value={block.displayContent || ''}
+                onChange={(e) => handleBlockChange(block.id, e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, block.id)}
+                placeholder={getPlaceholder(block.type)}
+                data-block-id={block.id}
+                autoComplete="off"
+                spellCheck={false}
+              />
+            </div>
+          ) : (
+            <input
+              type="text"
+              className={getBlockClassName(block.type)}
+              value={block.displayContent || ''}
+              onChange={(e) => handleBlockChange(block.id, e.target.value)}
+              onKeyDown={(e) => handleKeyDown(e, block.id)}
+              placeholder={getPlaceholder(block.type)}
+              data-block-id={block.id}
+              autoComplete="off"
+              spellCheck={false}
+            />
+          )}
         </div>
       ))}
     </div>

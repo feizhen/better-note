@@ -6,6 +6,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   loadNotes: () => ipcRenderer.invoke('load-notes'),
   deleteNote: (id) => ipcRenderer.invoke('delete-note', id),
   
+  // 获取当前窗口的便签数据
+  getCurrentNote: () => ipcRenderer.invoke('get-current-note'),
+  
   // 事件监听 - 旧版本兼容
   onNewNote: (callback) => ipcRenderer.on('new-note', callback),
   onSaveNote: (callback) => ipcRenderer.on('save-note', callback),

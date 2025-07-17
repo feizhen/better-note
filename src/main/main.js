@@ -164,6 +164,33 @@ ipcMain.handle('delete-note', async (event, noteId) => {
   return { success: true }
 })
 
+// 处理从便签窗口菜单创建新便签的请求
+ipcMain.on('create-new-note', () => {
+  createNewNote()
+})
+
+// 获取当前窗口的便签数据
+ipcMain.handle('get-current-note', async (event) => {
+  const windowId = BrowserWindow.fromWebContents(event.sender).id
+  const noteWindow = Array.from(noteWindows.values()).find(
+    nw => nw.window && nw.window.id === windowId
+  )
+  
+  if (noteWindow) {
+    return noteWindow.getNoteData()
+  }
+  
+  // 如果没找到对应的窗口，返回默认数据
+  return {
+    id: Date.now().toString(),
+    title: '新便签',
+    content: '',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    tags: []
+  }
+})
+
 // 应用事件处理
 app.whenReady().then(() => {
   createGlobalMenu()

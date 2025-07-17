@@ -1,4 +1,4 @@
-import { BrowserWindow, Menu } from 'electron'
+import { BrowserWindow, Menu, ipcMain } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
@@ -52,15 +52,46 @@ class NoteWindow {
       this.window.loadURL('http://localhost:3000?single=true')
       // this.window.webContents.openDevTools()
     } else {
-      this.window.loadFile(path.join(__dirname, '../renderer/index.html'), {
+      // 在生产环境中，renderer文件在app.asar内的dist/renderer目录
+      // __dirname = /src/main, 需要向上到根目录，然后进入dist/renderer
+      const rendererPath = path.join(__dirname, '..', '..', 'dist', 'renderer', 'index.html')
+      console.log('=== PRODUCTION DEBUG ===')
+      console.log('__dirname:', __dirname)
+      console.log('Loading renderer from:', rendererPath)
+      console.log('File exists check...')
+      
+      // 添加文件加载错误处理
+      this.window.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+        console.error('Failed to load:', {
+          errorCode,
+          errorDescription, 
+          validatedURL
+        })
+      })
+      
+      // 添加页面加载完成事件
+      this.window.webContents.on('did-finish-load', () => {
+        console.log('Page loaded successfully!')
+        // 生产环境不开启开发者工具
+        // this.window.webContents.openDevTools()
+      })
+      
+      // 添加DOM就绪事件
+      this.window.webContents.on('dom-ready', () => {
+        console.log('DOM is ready!')
+      })
+      
+      this.window.loadFile(rendererPath, {
         query: { single: 'true' }
       })
     }
 
     this.window.once('ready-to-show', () => {
       this.window.show()
-      // 发送便签数据到渲染进程
-      this.window.webContents.send('load-note', this.noteData)
+      // 延迟发送便签数据，确保渲染进程已经完全加载
+      setTimeout(() => {
+        this.window.webContents.send('load-note', this.noteData)
+      }, 100)
     })
 
     // 创建简约菜单
@@ -89,7 +120,8 @@ class NoteWindow {
             label: '新便签',
             accelerator: 'CmdOrCtrl+N',
             click: () => {
-              new NoteWindow()
+              // 通过主进程创建新窗口，确保正确管理
+              ipcMain.emit('create-new-note')
             }
           },
           {

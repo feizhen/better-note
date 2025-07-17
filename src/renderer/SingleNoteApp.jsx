@@ -20,6 +20,21 @@ const SingleNoteApp = () => {
   const titleRef = useRef(null)
 
   useEffect(() => {
+    // 初始化时获取便签数据
+    const initializeNote = async () => {
+      if (window.electronAPI) {
+        try {
+          const noteData = await window.electronAPI.getCurrentNote()
+          setNote(noteData)
+          document.title = noteData.title || '新便签'
+        } catch (error) {
+          console.error('获取便签数据失败:', error)
+        }
+      }
+    }
+    
+    initializeNote()
+    
     // 监听来自主进程的事件
     if (window.electronAPI) {
       window.electronAPI.onLoadNote((event, noteData) => {
