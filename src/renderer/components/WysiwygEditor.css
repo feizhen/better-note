@@ -21,22 +21,19 @@
   line-height: 1.8;
   font-family: inherit;
   resize: none;
-  padding: 4px 0;
+  padding: 0;
   margin: 0;
   transition: all 0.2s ease;
+  min-height: 1.8em;
 }
 
 .wysiwyg-block::placeholder {
-  color: #ccc;
-  font-style: italic;
-  opacity: 0.8;
+  color: transparent;
 }
 
 .wysiwyg-block:focus {
   outline: none;
-  background: rgba(0, 122, 255, 0.02);
-  border-radius: 4px;
-  padding: 4px 8px;
+  background: transparent;
 }
 
 /* 标题样式 */
@@ -127,16 +124,17 @@
   margin: 4px 0;
 }
 
-/* 空状态提示 */
-.wysiwyg-editor:empty::before {
-  content: '开始输入，或者输入 # 创建标题，输入 - 创建列表...';
+/* 全局空状态提示 */
+.wysiwyg-editor.empty-state::before {
+  content: '开始输入，或者输入 # 创建标题，输入 - 创建列表，输入 [] 创建待办事项...';
   color: #ccc;
   font-style: italic;
   pointer-events: none;
   position: absolute;
   top: 20px;
   left: 20px;
-  opacity: 0.8;
+  opacity: 0.6;
+  z-index: 1;
 }
 
 /* 选中状态 */
@@ -164,11 +162,11 @@
 .todo-block input[type="text"] {
   flex: 1;
   margin: 0;
-  padding: 4px 0;
+  padding: 0;
 }
 
 .todo-block input[type="text"]:focus {
-  padding: 4px 8px;
+  padding: 0;
 }
 
 /* 已完成的待办事项样式 */

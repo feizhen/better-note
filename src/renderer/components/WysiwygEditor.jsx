@@ -402,6 +402,71 @@ const WysiwygEditor = ({ note, onChange }) => {
     }
   }, [toggleTodo])
 
+  // 处理粘贴事件
+  const handlePaste = useCallback((e, blockId) => {
+    e.preventDefault()
+    
+    const clipboardData = e.clipboardData || window.clipboardData
+    const pastedText = clipboardData.getData('text')
+    
+    if (!pastedText) return
+    
+    const blockIndex = blocks.findIndex(b => b.id === blockId)
+    if (blockIndex === -1) return
+    
+    // 检查是否包含换行符
+    if (pastedText.includes('\n')) {
+      const lines = pastedText.split('\n')
+      const currentBlock = blocks[blockIndex]
+      
+      // 更新当前块为第一行
+      const updatedBlocks = [...blocks]
+      updatedBlocks[blockIndex] = {
+        ...currentBlock,
+        content: lines[0],
+        displayContent: lines[0],
+        type: 'paragraph'
+      }
+      
+      // 为剩余的行创建新块
+      for (let i = 1; i < lines.length; i++) {
+        const newBlock = {
+          id: `block-${Date.now()}-${i}`,
+          content: lines[i],
+          type: 'paragraph',
+          displayContent: lines[i]
+        }
+        updatedBlocks.splice(blockIndex + i, 0, newBlock)
+      }
+      
+      setBlocks(updatedBlocks)
+      
+      // 重新解析所有块以应用 Markdown 格式
+      setTimeout(() => {
+        const fullContent = updatedBlocks.map(b => b.content).join('\n')
+        parseContentToBlocks(fullContent)
+      }, 0)
+      
+      // 异步更新内容
+      setTimeout(() => updateContent(updatedBlocks), 10)
+    } else {
+      // 单行粘贴，正常处理
+      const input = e.target
+      const start = input.selectionStart
+      const end = input.selectionEnd
+      const currentValue = input.value
+      
+      const newValue = currentValue.substring(0, start) + pastedText + currentValue.substring(end)
+      handleBlockChange(blockId, newValue)
+      
+      // 设置光标位置
+      setTimeout(() => {
+        input.focus()
+        input.setSelectionRange(start + pastedText.length, start + pastedText.length)
+      }, 0)
+    }
+  }, [blocks, handleBlockChange, parseContentToBlocks, updateContent])
+
   const getBlockClassName = (type) => {
     const baseClass = 'wysiwyg-block'
     switch (type) {
@@ -419,24 +484,14 @@ const WysiwygEditor = ({ note, onChange }) => {
     }
   }
 
-  const getPlaceholder = (type) => {
-    switch (type) {
-      case 'heading1': return '标题 1'
-      case 'heading2': return '标题 2'
-      case 'heading3': return '标题 3'
-      case 'heading4': return '标题 4'
-      case 'heading5': return '标题 5'
-      case 'heading6': return '标题 6'
-      case 'unordered-list': return '列表项'
-      case 'ordered-list': return '列表项'
-      case 'quote': return '引用'
-      case 'todo': return '待办事项'
-      default: return '输入 # 创建标题，输入 - 创建列表...'
-    }
-  }
+  // 检查是否为空状态（只有一个空的段落块）
+  const isEmpty = blocks.length === 1 && 
+                  blocks[0].type === 'paragraph' && 
+                  !blocks[0].content && 
+                  !blocks[0].displayContent
 
   return (
-    <div className="wysiwyg-editor" ref={editorRef}>
+    <div className={`wysiwyg-editor ${isEmpty ? 'empty-state' : ''}`} ref={editorRef}>
       {blocks.map((block, index) => (
         <div key={block.id} className="wysiwyg-block-container">
           {block.type === 'todo' ? (
@@ -453,7 +508,7 @@ const WysiwygEditor = ({ note, onChange }) => {
                 value={block.displayContent || ''}
                 onChange={(e) => handleBlockChange(block.id, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(e, block.id)}
-                placeholder={getPlaceholder(block.type)}
+                onPaste={(e) => handlePaste(e, block.id)}
                 data-block-id={block.id}
                 autoComplete="off"
                 spellCheck={false}
@@ -466,7 +521,7 @@ const WysiwygEditor = ({ note, onChange }) => {
               value={block.displayContent || ''}
               onChange={(e) => handleBlockChange(block.id, e.target.value)}
               onKeyDown={(e) => handleKeyDown(e, block.id)}
-              placeholder={getPlaceholder(block.type)}
+              onPaste={(e) => handlePaste(e, block.id)}
               data-block-id={block.id}
               autoComplete="off"
               spellCheck={false}
