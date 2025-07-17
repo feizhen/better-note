@@ -1,0 +1,99 @@
+{
+  "name": "better-note",
+  "version": "1.0.0",
+  "description": "A beautiful macOS-style Markdown notes app",
+  "author": "Better Note Team",
+  "homepage": "https://github.com/your-username/better-note",
+  "type": "module",
+  "main": "src/main/main.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:vite\" \"wait-on http://localhost:3000 && npm run dev:electron\"",
+    "dev:vite": "vite",
+    "dev:electron": "NODE_ENV=development electron .",
+    "build": "vite build && electron-builder",
+    "build:vite": "vite build",
+    "build:electron": "electron-builder",
+    "dist": "npm run build:vite && npm run build:electron",
+    "pack": "electron-builder --dir",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["markdown", "notes", "electron", "productivity"],
+  "license": "ISC",
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.6.0",
+    "concurrently": "^9.2.0",
+    "electron": "^37.2.3",
+    "electron-builder": "^26.0.12",
+    "vite": "^5.4.19",
+    "wait-on": "^8.0.3"
+  },
+  "dependencies": {
+    "@uiw/react-md-editor": "^4.0.7",
+    "marked": "^16.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "build": {
+    "appId": "com.betternote.app",
+    "productName": "Better Note",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "dist/renderer/**/*",
+      "src/main/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "assets/icon.icns"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        },
+        {
+          "target": "deb",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.png"
+    },
+    "dmg": {
+      "title": "Better Note",
+      "icon": "assets/icon.icns"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

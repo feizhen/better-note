@@ -1,0 +1,74 @@
+.tag-input {
+  margin-top: 12px;
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #bbdefb;
+}
+
+.tag-remove {
+  background: none;
+  border: none;
+  color: #1976d2;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  margin-left: 4px;
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.tag-remove:hover {
+  background: rgba(25, 118, 210, 0.1);
+}
+
+.tag-input-field {
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 12px;
+  outline: none;
+  min-width: 80px;
+  max-width: 120px;
+}
+
+.tag-input-field:focus {
+  border-color: #007AFF;
+}
+
+.add-tag-btn {
+  background: transparent;
+  border: 1px dashed #ddd;
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #999;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-tag-btn:hover {
+  border-color: #007AFF;
+  color: #007AFF;
+}
