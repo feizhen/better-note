@@ -2,7 +2,10 @@
   "name": "better-note",
   "version": "1.0.0",
   "description": "A beautiful macOS-style Markdown notes app",
-  "author": "Better Note Team",
+  "author": {
+    "name": "Better Note Team", 
+    "email": "team@betternote.com"
+  },
   "homepage": "https://github.com/your-username/better-note",
   "type": "module",
   "main": "src/main/main.js",
@@ -58,8 +61,7 @@
           "target": "zip",
           "arch": ["x64", "arm64"]
         }
-      ],
-      "icon": "assets/icon.icns"
+      ]
     },
     "win": {
       "target": [
@@ -71,8 +73,7 @@
           "target": "portable",
           "arch": ["x64"]
         }
-      ],
-      "icon": "assets/icon.ico"
+      ]
     },
     "linux": {
       "target": [
@@ -84,12 +85,10 @@
           "target": "deb",
           "arch": ["x64"]
         }
-      ],
-      "icon": "assets/icon.png"
+      ]
     },
     "dmg": {
-      "title": "Better Note",
-      "icon": "assets/icon.icns"
+      "title": "Better Note"
     },
     "nsis": {
       "oneClick": false,
