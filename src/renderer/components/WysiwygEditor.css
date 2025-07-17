@@ -1,0 +1,168 @@
+.wysiwyg-editor {
+  width: 100%;
+  height: 100%;
+  padding: 20px;
+  overflow-y: auto;
+  background: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.wysiwyg-block-container {
+  margin-bottom: 4px;
+  position: relative;
+}
+
+.wysiwyg-block {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #333;
+  line-height: 1.8;
+  font-family: inherit;
+  resize: none;
+  padding: 4px 0;
+  margin: 0;
+  transition: all 0.2s ease;
+}
+
+.wysiwyg-block::placeholder {
+  color: #ccc;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.wysiwyg-block:focus {
+  outline: none;
+  background: rgba(0, 122, 255, 0.02);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+/* 标题样式 */
+.heading-1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 12px 0 8px 0;
+  line-height: 1.2;
+}
+
+.heading-2 {
+  font-size: 26px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 10px 0 6px 0;
+  line-height: 1.3;
+}
+
+.heading-3 {
+  font-size: 22px;
+  font-weight: 600;
+  color: #1a1a1a;
+  margin: 8px 0 4px 0;
+  line-height: 1.4;
+}
+
+.heading-4 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin: 6px 0 3px 0;
+  line-height: 1.5;
+}
+
+.heading-5 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin: 4px 0 2px 0;
+  line-height: 1.6;
+}
+
+.heading-6 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #555;
+  margin: 2px 0 1px 0;
+  line-height: 1.6;
+}
+
+/* 列表样式 */
+.list-item {
+  font-size: 16px;
+  color: #333;
+  padding-left: 20px;
+  position: relative;
+  margin: 4px 0;
+}
+
+.list-item::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #007AFF;
+  font-weight: bold;
+  width: 16px;
+}
+
+/* 引用样式 */
+.quote-block {
+  font-size: 16px;
+  color: #666;
+  font-style: italic;
+  padding: 12px 16px;
+  border-left: 3px solid #007AFF;
+  background: rgba(0, 122, 255, 0.05);
+  margin: 8px 0;
+  border-radius: 0 4px 4px 0;
+}
+
+/* 普通段落样式 */
+.paragraph {
+  font-size: 16px;
+  color: #333;
+  line-height: 1.7;
+  margin: 4px 0;
+}
+
+/* 空状态提示 */
+.wysiwyg-editor:empty::before {
+  content: '开始输入，或者输入 # 创建标题，输入 - 创建列表...';
+  color: #ccc;
+  font-style: italic;
+  pointer-events: none;
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  opacity: 0.8;
+}
+
+/* 选中状态 */
+.wysiwyg-block::selection {
+  background: rgba(0, 122, 255, 0.2);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .wysiwyg-editor {
+    padding: 16px;
+  }
+  
+  .heading-1 {
+    font-size: 28px;
+  }
+  
+  .heading-2 {
+    font-size: 22px;
+  }
+  
+  .heading-3 {
+    font-size: 20px;
+  }
+  
+  .heading-4 {
+    font-size: 16px;
+  }
+}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import WysiwygEditor from './components/WysiwygEditor'
 import './SingleNoteApp.css'
 
 const SingleNoteApp = () => {
@@ -13,6 +14,7 @@ const SingleNoteApp = () => {
     updatedAt: ''
   })
   const [isPreviewMode, setIsPreviewMode] = useState(false)
+  const [isWysiwygMode, setIsWysiwygMode] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const textareaRef = useRef(null)
   const titleRef = useRef(null)
@@ -30,7 +32,15 @@ const SingleNoteApp = () => {
       })
 
       window.electronAPI.onTogglePreview(() => {
-        setIsPreviewMode(prev => !prev)
+        if (isWysiwygMode) {
+          setIsPreviewMode(true)
+          setIsWysiwygMode(false)
+        } else if (isPreviewMode) {
+          setIsPreviewMode(false)
+          setIsWysiwygMode(true)
+        } else {
+          setIsPreviewMode(true)
+        }
       })
 
       window.electronAPI.onFormatBold(() => {
@@ -83,6 +93,11 @@ const SingleNoteApp = () => {
       content: newContent,
       updatedAt: new Date().toISOString()
     }
+    setNote(updatedNote)
+    debouncedSave(updatedNote)
+  }
+
+  const handleNoteChange = (updatedNote) => {
     setNote(updatedNote)
     debouncedSave(updatedNote)
   }
@@ -341,11 +356,34 @@ const SingleNoteApp = () => {
         />
         <div className="header-controls">
           <button
+            className={`mode-toggle ${isWysiwygMode ? 'active' : ''}`}
+            onClick={() => {
+              setIsWysiwygMode(!isWysiwygMode)
+              setIsPreviewMode(false)
+            }}
+            title="所见即所得模式"
+          >
+            ✨
+          </button>
+          <button
             className={`preview-toggle ${isPreviewMode ? 'active' : ''}`}
-            onClick={() => setIsPreviewMode(!isPreviewMode)}
+            onClick={() => {
+              setIsPreviewMode(!isPreviewMode)
+              setIsWysiwygMode(false)
+            }}
             title="切换预览 (Cmd+Shift+P)"
           >
-            {isPreviewMode ? '📝' : '👁️'}
+            👁️
+          </button>
+          <button
+            className={`edit-toggle ${!isWysiwygMode && !isPreviewMode ? 'active' : ''}`}
+            onClick={() => {
+              setIsWysiwygMode(false)
+              setIsPreviewMode(false)
+            }}
+            title="Markdown 源码模式"
+          >
+            📝
           </button>
           {isSaving && (
             <div className="saving-indicator" title="保存中...">
@@ -357,7 +395,12 @@ const SingleNoteApp = () => {
 
       {/* 内容区域 */}
       <div className="note-content">
-        {isPreviewMode ? (
+        {isWysiwygMode ? (
+          <WysiwygEditor 
+            note={note}
+            onChange={handleNoteChange}
+          />
+        ) : isPreviewMode ? (
           <div className="markdown-preview">
             <ReactMarkdown 
               remarkPlugins={[remarkGfm]}
